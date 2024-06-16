@@ -1,5 +1,4 @@
 import {Vector} from "./vector.mjs";
-import {lerpVec} from "./utils.mjs";
 
 let idProvider = 0;
 
@@ -15,13 +14,15 @@ class Boid {
     this.maxSpeed = 4;
   }
 
-  align(boids) {
+  alignAndCohesion(boids) {
     let total = 0;
-    let steering = Vector.zero();
+    const steering = Vector.zero();
+    const targetLocation = Vector.zero();
     for (const other of boids) {
       if (other.id === this.id) continue;
       if (this.position.distance(other.position) < this.perceptionRadius) {
         steering.addVec(other.velocity);
+        targetLocation.addVec(other.position);
         total++;
       }
     }
@@ -30,19 +31,30 @@ class Boid {
       steering.setLength(this.maxSpeed);
       steering.subVec(this.velocity);
       steering.limit(this.maxForce);
+
+      targetLocation.mult(1 / total);
+      targetLocation.subVec(this.position);
+      targetLocation.setLength(this.maxSpeed);
+      targetLocation.subVec(this.velocity);
+      targetLocation.limit(this.maxForce);
     }
-    return steering;
+    return {steering, targetLocation};
   }
 
   flock(boids) {
-    const alignment = this.align(boids);
+    const {steering: alignment, targetLocation: cohesion} = this.alignAndCohesion(boids);
     // this.acceleration = alignment;
-    this.acceleration = lerpVec(this.acceleration, alignment, 0.1);
+    // this.acceleration = lerpVec(this.acceleration, alignment, 0.1);
+    // this.acceleration = lerpVec(this.acceleration, cohesion, 0.1);
+    // this.acceleration = lerpVec(this.acceleration, alignment.addVec(cohesion), 0.1);
+    this.acceleration.addVec(alignment.addVec(cohesion));
   }
 
   update(worldWidth2, worldHeight2) {
     this.position.addVec(this.velocity);
     this.velocity.addVec(this.acceleration);
+    this.velocity.limit(this.maxSpeed);
+    this.acceleration.mult(0);
     this.edges(worldWidth2, worldHeight2);
   }
 
