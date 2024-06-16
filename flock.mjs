@@ -8,11 +8,11 @@ class Flock {
     }
   }
 
-  update() {
+  update(worldWidth2, worldHeight2) {
     for (const boid of this.flock) {
       // boid.align(this.flock);
       boid.flock(this.flock);
-      boid.update();
+      boid.update(worldWidth2, worldHeight2);
     }
   }
 

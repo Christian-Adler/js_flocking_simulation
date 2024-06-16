@@ -37,7 +37,7 @@ const update = () => {
   ctx.save();
   ctx.translate(worldWidth2, worldHeight2);
 
-  flock.update();
+  flock.update(worldWidth2, worldHeight2);
   flock.draw(ctx);
 
   ctx.restore();

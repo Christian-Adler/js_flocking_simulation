@@ -10,6 +10,7 @@ class Boid {
     this.velocity = Vector.fromAngle(Math.random() * (2 * Math.PI)).mult(Math.random());
     this.acceleration = new Vector(0, 0);
     this.perceptionRadius = 50;
+    this.maxForce = 0.005;
   }
 
   align(boids) {
@@ -25,6 +26,7 @@ class Boid {
     if (total > 0) {
       steering.mult(1 / total);
       steering.subVec(this.velocity);
+      steering.limit(this.maxForce);
     }
     return steering;
   }
@@ -34,9 +36,22 @@ class Boid {
     this.acceleration = alignment;
   }
 
-  update() {
+  update(worldWidth2, worldHeight2) {
     this.position.addVec(this.velocity);
     this.velocity.addVec(this.acceleration);
+    this.edges(worldWidth2, worldHeight2);
+  }
+
+  edges(worldWidth2, worldHeight2) {
+    if (this.position.x > worldWidth2)
+      this.position.x = -worldWidth2;
+    else if (this.position.x < -worldWidth2)
+      this.position.x = worldWidth2;
+
+    if (this.position.y > worldHeight2)
+      this.position.y = -worldHeight2;
+    else if (this.position.y < -worldHeight2)
+      this.position.y = worldHeight2;
   }
 
   draw(ctx) {
