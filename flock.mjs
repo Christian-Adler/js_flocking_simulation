@@ -10,6 +10,8 @@ class Flock {
 
   update() {
     for (const boid of this.flock) {
+      // boid.align(this.flock);
+      boid.flock(this.flock);
       boid.update();
     }
   }
