@@ -40,6 +40,23 @@ class Vector {
     return Math.sqrt((this.x - other.x) ** 2 + (this.y - other.y) ** 2);
   }
 
+  normalize() {
+    const norm = Vector.fromAngle(this.toRadians());
+    this.x = norm.x;
+    this.y = norm.y;
+    return this;
+  }
+
+  len() {
+    return Math.sqrt(this.x ** 2 + this.y ** 2);
+  }
+
+  limit(val) {
+    if (this.len() > val)
+      return this.normalize().mult(val);
+    return this;
+  }
+
   clone() {
     return new Vector(this.x, this.y);
   }
