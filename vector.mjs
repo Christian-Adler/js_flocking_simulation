@@ -22,8 +22,22 @@ class Vector {
     return this;
   }
 
+  sub(xVal, yVal) {
+    this.x -= xVal;
+    this.y -= yVal;
+    return this;
+  }
+
   addVec(vec) {
     return this.add(vec.x, vec.y);
+  }
+
+  subVec(vec) {
+    return this.sub(vec.x, vec.y);
+  }
+
+  distance(other) {
+    return Math.sqrt((this.x - other.x) ** 2 + (this.y - other.y) ** 2);
   }
 
   clone() {
@@ -55,6 +69,10 @@ class Vector {
     const x = Math.cos(radians);
     const y = Math.sin(radians);
     return new Vector(x, y);
+  }
+
+  static zero() {
+    return new Vector(0, 0);
   }
 }
 
