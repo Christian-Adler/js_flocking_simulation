@@ -51,6 +51,10 @@ class Vector {
     return Math.sqrt(this.x ** 2 + this.y ** 2);
   }
 
+  setLength(val) {
+    return this.normalize().mult(val);
+  }
+
   limit(val) {
     if (this.len() > val)
       return this.normalize().mult(val);

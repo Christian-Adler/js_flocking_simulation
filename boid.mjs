@@ -1,4 +1,5 @@
 import {Vector} from "./vector.mjs";
+import {lerpVec} from "./utils.mjs";
 
 let idProvider = 0;
 
@@ -10,7 +11,8 @@ class Boid {
     this.velocity = Vector.fromAngle(Math.random() * (2 * Math.PI)).mult(Math.random());
     this.acceleration = new Vector(0, 0);
     this.perceptionRadius = 50;
-    this.maxForce = 0.005;
+    this.maxForce = 0.2;
+    this.maxSpeed = 4;
   }
 
   align(boids) {
@@ -25,6 +27,7 @@ class Boid {
     }
     if (total > 0) {
       steering.mult(1 / total);
+      steering.setLength(this.maxSpeed);
       steering.subVec(this.velocity);
       steering.limit(this.maxForce);
     }
@@ -33,7 +36,8 @@ class Boid {
 
   flock(boids) {
     const alignment = this.align(boids);
-    this.acceleration = alignment;
+    // this.acceleration = alignment;
+    this.acceleration = lerpVec(this.acceleration, alignment, 0.1);
   }
 
   update(worldWidth2, worldHeight2) {
