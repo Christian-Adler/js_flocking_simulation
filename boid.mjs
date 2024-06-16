@@ -14,40 +14,56 @@ class Boid {
     this.maxSpeed = 4;
   }
 
-  alignAndCohesion(boids) {
+  alignAndCohesionAndSeparation(boids) {
     let total = 0;
-    const steering = Vector.zero();
-    const targetLocation = Vector.zero();
+
+    const alignment = Vector.zero();
+    const cohesion = Vector.zero();
+    const separation = Vector.zero();
+
     for (const other of boids) {
       if (other.id === this.id) continue;
-      if (this.position.distance(other.position) < this.perceptionRadius) {
-        steering.addVec(other.velocity);
-        targetLocation.addVec(other.position);
+      const distance = this.position.distance(other.position);
+      if (distance < this.perceptionRadius) {
+        alignment.addVec(other.velocity);
+
+        cohesion.addVec(other.position);
+
+        const diff = this.position.clone().subVec(other.position);
+        diff.mult(1 / distance);
+        separation.addVec(diff);
+
         total++;
       }
     }
     if (total > 0) {
-      steering.mult(1 / total);
-      steering.setLength(this.maxSpeed);
-      steering.subVec(this.velocity);
-      steering.limit(this.maxForce);
+      alignment.mult(1 / total);
+      alignment.setLength(this.maxSpeed);
+      alignment.subVec(this.velocity);
+      alignment.limit(this.maxForce);
 
-      targetLocation.mult(1 / total);
-      targetLocation.subVec(this.position);
-      targetLocation.setLength(this.maxSpeed);
-      targetLocation.subVec(this.velocity);
-      targetLocation.limit(this.maxForce);
+      cohesion.mult(1 / total);
+      cohesion.subVec(this.position);
+      cohesion.setLength(this.maxSpeed);
+      cohesion.subVec(this.velocity);
+      cohesion.limit(this.maxForce);
+
+      separation.setLength(this.maxSpeed);
+      separation.subVec(this.velocity);
+      separation.limit(this.maxForce);
     }
-    return {steering, targetLocation};
+    return {alignment, cohesion, separation};
   }
 
   flock(boids) {
-    const {steering: alignment, targetLocation: cohesion} = this.alignAndCohesion(boids);
+    const {alignment, cohesion, separation} = this.alignAndCohesionAndSeparation(boids);
     // this.acceleration = alignment;
     // this.acceleration = lerpVec(this.acceleration, alignment, 0.1);
     // this.acceleration = lerpVec(this.acceleration, cohesion, 0.1);
     // this.acceleration = lerpVec(this.acceleration, alignment.addVec(cohesion), 0.1);
-    this.acceleration.addVec(alignment.addVec(cohesion));
+    this.acceleration.addVec(alignment);
+    this.acceleration.addVec(cohesion);
+    this.acceleration.addVec(separation);
   }
 
   update(worldWidth2, worldHeight2) {
