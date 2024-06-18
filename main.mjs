@@ -23,11 +23,12 @@ const updateWorldSettings = () => {
 
 updateWorldSettings();
 
-const flock = new Flock(100);
+const flock = new Flock(100, worldWidth, worldHeight);
 
 
 const update = () => {
   ctx.fillStyle = "white";
+  ctx.strokeStyle = "white";
 
   if (worldUpdated) {
     worldUpdated = false;
@@ -35,9 +36,7 @@ const update = () => {
   ctx.clearRect(0, 0, worldWidth, worldHeight);
 
   ctx.save();
-  ctx.translate(worldWidth2, worldHeight2);
-
-  flock.update(worldWidth2, worldHeight2);
+  flock.update(worldWidth, worldHeight);
   flock.draw(ctx);
 
   ctx.restore();

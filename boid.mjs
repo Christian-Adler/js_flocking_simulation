@@ -3,10 +3,10 @@ import {Vector} from "./vector.mjs";
 let idProvider = 0;
 
 class Boid {
-  constructor() {
+  constructor(worldWidth, worldHeight) {
     this.id = ++idProvider;
     // this.position = new Vector(0, 0);
-    this.position = new Vector((Math.random() - 0.5) * 500, (Math.random() - 0.5) * 500);
+    this.position = new Vector((Math.random()) * worldWidth, (Math.random()) * worldHeight);
     this.velocity = Vector.fromAngle(Math.random() * (2 * Math.PI)).mult(Math.random());
     this.acceleration = new Vector(0, 0);
     this.perceptionRadius = 50;
@@ -66,30 +66,54 @@ class Boid {
     this.acceleration.addVec(separation);
   }
 
-  update(worldWidth2, worldHeight2) {
+  update(worldWidth, worldHeight) {
     this.position.addVec(this.velocity);
     this.velocity.addVec(this.acceleration);
     this.velocity.limit(this.maxSpeed);
     this.acceleration.mult(0);
-    this.edges(worldWidth2, worldHeight2);
+    this.edges(worldWidth, worldHeight);
   }
 
-  edges(worldWidth2, worldHeight2) {
-    if (this.position.x > worldWidth2)
-      this.position.x = -worldWidth2;
-    else if (this.position.x < -worldWidth2)
-      this.position.x = worldWidth2;
+  edges(worldWidth, worldHeight) {
+    if (this.position.x > worldWidth)
+      this.position.x = 0;
+    else if (this.position.x < 0)
+      this.position.x = worldWidth;
 
-    if (this.position.y > worldHeight2)
-      this.position.y = -worldHeight2;
-    else if (this.position.y < -worldHeight2)
-      this.position.y = worldHeight2;
+    if (this.position.y > worldHeight)
+      this.position.y = 0;
+    else if (this.position.y < 0)
+      this.position.y = worldHeight;
   }
 
   draw(ctx) {
+    // ctx.beginPath();
+    // ctx.moveTo(this.position.x, this.position.y);
+    // const target = this.position.clone().addVec(this.velocity.clone().mult(4));
+    // ctx.lineTo(target.x, target.y);
+    // // ctx.arc(this.position.x, this.position.y, 10, 0, Math.PI * 2);
+    // // ctx.fill();
+    // ctx.stroke();
+
+    ctx.save();
+    ctx.translate(this.position.x, this.position.y);
+    ctx.rotate(this.velocity.toRadians() - Math.PI / 2);
+
     ctx.beginPath();
-    ctx.arc(this.position.x, this.position.y, 10, 0, Math.PI * 2);
+    ctx.arc(0, 0, 5, 0, Math.PI * 2);
     ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(-5, 0);
+    // const target = this.velocity.clone().mult(4);
+    ctx.lineTo(0, 20);
+    ctx.lineTo(5, 0);
+    ctx.lineTo(0, -5);
+    ctx.lineTo(5, -15);
+    ctx.lineTo(-5, -15);
+    ctx.lineTo(0, -5);
+    ctx.stroke();
+    ctx.restore();
   }
 }
 

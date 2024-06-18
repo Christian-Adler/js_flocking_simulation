@@ -1,10 +1,10 @@
 import {Boid} from "./boid.mjs";
 
 class Flock {
-  constructor(n) {
+  constructor(n, worldWidth, worldHeight) {
     this.flock = [];
     for (let i = 0; i < n; i++) {
-      this.flock.push(new Boid());
+      this.flock.push(new Boid(worldWidth, worldHeight));
     }
   }
 
