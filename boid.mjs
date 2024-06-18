@@ -1,4 +1,5 @@
 import {Vector} from "./vector.mjs";
+import {getAlignmentFactor, getCohesionFactor, getSeparationFactor} from "./statics.mjs";
 
 let idProvider = 0;
 
@@ -61,9 +62,9 @@ class Boid {
     // this.acceleration = lerpVec(this.acceleration, alignment, 0.1);
     // this.acceleration = lerpVec(this.acceleration, cohesion, 0.1);
     // this.acceleration = lerpVec(this.acceleration, alignment.addVec(cohesion), 0.1);
-    this.acceleration.addVec(alignment);
-    this.acceleration.addVec(cohesion);
-    this.acceleration.addVec(separation);
+    this.acceleration.addVec(alignment.mult(getAlignmentFactor()));
+    this.acceleration.addVec(cohesion.mult(getCohesionFactor()));
+    this.acceleration.addVec(separation.mult(getSeparationFactor()));
   }
 
   update(worldWidth, worldHeight) {
@@ -100,12 +101,10 @@ class Boid {
     ctx.rotate(this.velocity.toRadians() - Math.PI / 2);
 
     // turn speed to color
-    const degVelocity = this.velocity.len() / this.maxSpeed * 360;
+    const degVelocity = this.velocity.len() / this.maxSpeed * 270;
     const style = 'hsl(' + degVelocity + ' 100% 50% / ' + (80) + '%)';
     ctx.strokeStyle = style;
     ctx.fillStyle = style;
-
-    // todo sliders to control alignment, cohesion,... (multipli with factor)
 
     ctx.beginPath();
     ctx.arc(0, 0, 5, Math.PI, Math.PI * 2);

@@ -1,4 +1,5 @@
 import {Flock} from "./flock.mjs";
+import {setAlignmentFactor, setCohesionFactor, setSeparationFactor} from "./statics.mjs";
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext('2d');
@@ -47,3 +48,28 @@ const update = () => {
 }
 
 update();
+
+const settings = [
+  {id: 'rangeAlignment', setter: setAlignmentFactor},
+  {id: 'rangeCohesion', setter: setCohesionFactor},
+  {id: 'rangeSeparation', setter: setSeparationFactor},
+];
+for (const setting of settings) {
+  const range = document.getElementById(setting.id);
+  range.addEventListener("input", (evt) => {
+    let val = range.value;
+    evt.target.nextSibling.innerText = val;
+    val = parseFloat(val);
+    setting.setter(val);
+  });
+}
+
+const switchInputs = document.querySelector('#switchInputs');
+switchInputs.addEventListener('click', (e) => {
+  e.target.parentNode.classList.toggle('min');
+  const isMin = e.target.parentNode.classList.contains('min');
+  if (isMin)
+    e.target.innerHTML = '&gt;';
+  else
+    e.target.innerText = 'X';
+});

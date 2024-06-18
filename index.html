@@ -14,12 +14,73 @@
         body {
             background: black;
         }
+
+        #inputs {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            color: white;
+            cursor: default;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #inputs.min {
+            overflow: hidden;
+            height: 13px;
+            width: 11px;
+            display: block;
+        }
+
+        #switchInputs {
+            font-weight: bold;
+            border-bottom: 1px solid grey;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            cursor: pointer;
+        }
+
+        #inputs .labelText {
+            width: 100px;
+            display: inline-block;
+        }
+
+        .rangeValue {
+            min-width: 46px;
+            text-align: right;
+            display: inline-block;
+        }
+
+        .rangeValue:after {
+            content: "%";
+        }
     </style>
 </head>
 <body>
+
+<div id="inputs" class="">
+    <div id="switchInputs">X</div>
+    <label><span class="labelText">Alignment:</span>
+        <input id="rangeAlignment" type="range" min="0" max="200" value="100" step="1"/><span
+                class="rangeValue">100</span>
+    </label>
+    <label><span class="labelText">Cohesion:</span>
+        <input id="rangeCohesion" type="range" min="0" max="200" value="100" step="1"/><span
+                class="rangeValue">100</span>
+    </label>
+    <label><span class="labelText">Separation:</span>
+        <input id="rangeSeparation" type="range" min="0" max="200" value="100" step="1"/><span
+                class="rangeValue">100</span>
+    </label>
+</div>
+
 <canvas id="canvas" height="500" width="500"></canvas>
 
 <script src="utils.mjs" type="module"></script>
+<script src="statics.mjs" type="module"></script>
 <script src="vector.mjs" type="module"></script>
 <script src="boid.mjs" type="module"></script>
 <script src="flock.mjs" type="module"></script>
