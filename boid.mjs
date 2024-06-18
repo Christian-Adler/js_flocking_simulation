@@ -99,16 +99,26 @@ class Boid {
     ctx.translate(this.position.x, this.position.y);
     ctx.rotate(this.velocity.toRadians() - Math.PI / 2);
 
+    // turn speed to color
+    const degVelocity = this.velocity.len() / this.maxSpeed * 360;
+    const style = 'hsl(' + degVelocity + ' 100% 50% / ' + (80) + '%)';
+    ctx.strokeStyle = style;
+    ctx.fillStyle = style;
+
+    // todo sliders to control alignment, cohesion,... (multipli with factor)
+
     ctx.beginPath();
-    ctx.arc(0, 0, 5, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.arc(0, 0, 5, Math.PI, Math.PI * 2);
+    ctx.stroke();
 
     ctx.beginPath();
     ctx.moveTo(-5, 0);
-    // const target = this.velocity.clone().mult(4);
     ctx.lineTo(0, 20);
     ctx.lineTo(5, 0);
-    ctx.lineTo(0, -5);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, -5);
     ctx.lineTo(5, -15);
     ctx.lineTo(-5, -15);
     ctx.lineTo(0, -5);
