@@ -1,5 +1,6 @@
 import {Vector} from "./vector.mjs";
 import {getAlignmentFactor, getCohesionFactor, getSeparationFactor} from "./statics.mjs";
+import {Obstacle} from "./obstacle.mjs";
 
 let idProvider = 0;
 
@@ -7,7 +8,23 @@ class Boid {
   constructor(worldWidth, worldHeight) {
     this.id = ++idProvider;
     // this.position = new Vector(0, 0);
-    this.position = new Vector((Math.random()) * worldWidth, (Math.random()) * worldHeight);
+
+    let foundPos = false;
+    let tryCount = 0;
+    while (!foundPos && tryCount < 20) {
+      foundPos = true;
+      tryCount++;
+      this.position = new Vector((Math.random()) * worldWidth, (Math.random()) * worldHeight);
+
+      for (const obstacle of Obstacle.obstacles) {
+        const distance = this.position.distance(obstacle.position);
+        if (distance < obstacle.r) {
+          foundPos = false;
+          break;
+        }
+      }
+    }
+
     this.velocity = Vector.fromAngle(Math.random() * (2 * Math.PI)).mult(Math.random());
     this.acceleration = new Vector(0, 0);
     this.perceptionRadius = 50;
@@ -21,6 +38,7 @@ class Boid {
     const alignment = Vector.zero();
     const cohesion = Vector.zero();
     const separation = Vector.zero();
+    const obstacleAvoidance = Vector.zero();
 
     for (const other of boids) {
       if (other.id === this.id) continue;
@@ -53,23 +71,41 @@ class Boid {
       separation.subVec(this.velocity);
       separation.limit(this.maxForce);
     }
-    return {alignment, cohesion, separation};
+
+    for (const obstacle of Obstacle.obstacles) {
+      const distance = this.position.distance(obstacle.position);
+      if (distance < this.perceptionRadius + obstacle.r) {
+        const diff = this.position.clone().subVec(obstacle.position);
+        diff.mult(1 / this.perceptionRadius);
+        obstacleAvoidance.addVec(diff);
+      }
+    }
+
+    return {alignment, cohesion, separation, obstacleAvoidance};
   }
 
   flock(boids) {
-    const {alignment, cohesion, separation} = this.alignAndCohesionAndSeparation(boids);
-    // this.acceleration = alignment;
-    // this.acceleration = lerpVec(this.acceleration, alignment, 0.1);
-    // this.acceleration = lerpVec(this.acceleration, cohesion, 0.1);
-    // this.acceleration = lerpVec(this.acceleration, alignment.addVec(cohesion), 0.1);
+    const {alignment, cohesion, separation, obstacleAvoidance} = this.alignAndCohesionAndSeparation(boids);
     this.acceleration.addVec(alignment.mult(getAlignmentFactor()));
     this.acceleration.addVec(cohesion.mult(getCohesionFactor()));
     this.acceleration.addVec(separation.mult(getSeparationFactor()));
+
+    // Remove direction to obstacle from vector
+    // https://stackoverflow.com/questions/5060082/eliminating-a-direction-from-a-vector
+    if (!this.velocity.isZero() && !obstacleAvoidance.isZero()) {
+      const obstacleNormVec = obstacleAvoidance.normalize();
+      const dotProductVal = this.velocity.clone().dotProduct(obstacleNormVec);
+      const negVelocity = this.velocity.clone().subVec(obstacleNormVec.mult(dotProductVal));
+      this.acceleration.addVec(negVelocity);
+    }
   }
 
   update(worldWidth, worldHeight) {
     this.position.addVec(this.velocity);
-    this.velocity.addVec(this.acceleration);
+    if (this.acceleration.isZero())
+      this.velocity.mult(1.01);
+    else
+      this.velocity.addVec(this.acceleration);
     this.velocity.limit(this.maxSpeed);
     this.acceleration.mult(0);
     this.edges(worldWidth, worldHeight);

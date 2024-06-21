@@ -1,5 +1,7 @@
 import {Flock} from "./flock.mjs";
 import {setAlignmentFactor, setCohesionFactor, setSeparationFactor} from "./statics.mjs";
+import {Vector} from "./vector.mjs";
+import {Obstacle} from "./obstacle.mjs";
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext('2d');
@@ -24,6 +26,11 @@ const updateWorldSettings = () => {
 
 updateWorldSettings();
 
+const oR = 50;
+for (let i = 0; i < Math.floor(worldWidth / 50); i++) {
+  new Obstacle(new Vector((worldWidth - oR * 2) * Math.random() + oR, (worldHeight - oR * 2) * Math.random() + oR), oR / 2 + oR * Math.random());
+}
+
 const flock = new Flock(100, worldWidth, worldHeight);
 
 
@@ -41,6 +48,8 @@ const update = () => {
   flock.draw(ctx);
 
   ctx.restore();
+
+  Obstacle.draw(ctx);
 
   updateWorldSettings();
 
@@ -73,3 +82,5 @@ switchInputs.addEventListener('click', (e) => {
   else
     e.target.innerText = 'X';
 });
+
+// TODO predator, follow a boid?
