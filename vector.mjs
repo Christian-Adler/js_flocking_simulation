@@ -4,6 +4,10 @@ class Vector {
     this.y = y;
   }
 
+  isZero() {
+    return this.x === 0 && this.y === 0;
+  }
+
   draw(ctx) {
     ctx.beginPath();
     ctx.arc(this.x, this.y, 0.5, 0, Math.PI * 2);
@@ -34,6 +38,10 @@ class Vector {
 
   subVec(vec) {
     return this.sub(vec.x, vec.y);
+  }
+
+  dotProduct(vec) {
+    return this.x * vec.x + this.y * vec.y;
   }
 
   distance(other) {
