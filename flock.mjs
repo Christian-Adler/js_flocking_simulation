@@ -1,19 +1,45 @@
 import {Boid} from "./boid.mjs";
 
 class Flock {
+
   constructor(n, worldWidth, worldHeight) {
     this.flock = [];
+    this.matureBoids = [];
+    this.deadBoids = [];
     for (let i = 0; i < n; i++) {
-      this.flock.push(new Boid(worldWidth, worldHeight));
+      this.flock.push(new Boid(worldWidth, worldHeight, this));
     }
   }
 
-  update(worldWidth2, worldHeight2) {
+  addMatureBoid(boid) {
+    this.matureBoids.push(boid);
+  }
+
+  addDeadBoid(boid) {
+    this.deadBoids.push(boid);
+  }
+
+  update(worldWidth, worldHeight) {
+    for (const matureBoid of this.matureBoids) {
+      const idx = this.flock.findIndex(b => b.id === matureBoid.id);
+      if (idx >= 0) {
+        this.flock.splice(idx, 1);
+        this.flock.push(new Boid(worldWidth, worldHeight, this, matureBoid.position.clone()));
+        this.flock.push(new Boid(worldWidth, worldHeight, this, matureBoid.position.clone()));
+      }
+    }
+    for (const deadBoid of this.deadBoids) {
+      const idx = this.flock.findIndex(b => b.id === deadBoid.id);
+      if (idx >= 0) {
+        this.flock.splice(idx, 1);
+      }
+    }
+
     for (const boid of this.flock) {
       boid.flock(this.flock);
     }
     for (const boid of this.flock) {
-      boid.update(worldWidth2, worldHeight2);
+      boid.update(worldWidth, worldHeight);
     }
   }
 

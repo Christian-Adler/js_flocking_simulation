@@ -6,22 +6,25 @@ import {Food} from "./food.mjs";
 let idProvider = 0;
 
 class Boid {
-  constructor(worldWidth, worldHeight) {
+  constructor(worldWidth, worldHeight, ownFlock, optStartPos) {
     this.id = ++idProvider;
-    // this.position = new Vector(0, 0);
+    this.ownFlock = ownFlock;
+    this.position = optStartPos;
 
-    let foundPos = false;
-    let tryCount = 0;
-    while (!foundPos && tryCount < 20) {
-      foundPos = true;
-      tryCount++;
-      this.position = new Vector((Math.random()) * worldWidth, (Math.random()) * worldHeight);
+    if (!optStartPos) {
+      let foundPos = false;
+      let tryCount = 0;
+      while (!foundPos && tryCount < 20) {
+        foundPos = true;
+        tryCount++;
+        this.position = new Vector((Math.random()) * worldWidth, (Math.random()) * worldHeight);
 
-      for (const obstacle of Obstacle.obstacles) {
-        const distance = this.position.distance(obstacle.position);
-        if (distance < obstacle.r) {
-          foundPos = false;
-          break;
+        for (const obstacle of Obstacle.obstacles) {
+          const distance = this.position.distance(obstacle.position);
+          if (distance < obstacle.r) {
+            foundPos = false;
+            break;
+          }
         }
       }
     }
@@ -145,7 +148,11 @@ class Boid {
       if (distance < 5) {
         if (this.size < this.maxSize)
           this.size += 0.5;
-        if (this.age > 0) this.age = 0;
+        else
+          this.ownFlock.addMatureBoid(this);
+
+        if (this.age > 0)
+          this.age = 0;
         food.origin = Food.findRandomPos(worldWidth, worldHeight);
         break;
       }
@@ -157,6 +164,8 @@ class Boid {
 
     if (this.age < this.maxAge)
       this.age++;
+    else
+      this.ownFlock.addDeadBoid(this);
 
     this.checkForFood(worldWidth, worldHeight);
 
