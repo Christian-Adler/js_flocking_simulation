@@ -2,12 +2,12 @@ import {Vector} from "./vector.mjs";
 import {getAlignmentFactor, getCohesionFactor, getSeparationFactor} from "./statics.mjs";
 import {Obstacle} from "./obstacle.mjs";
 import {Food} from "./food.mjs";
+import {BoidBase} from "./boidbase.mjs";
 
-let idProvider = 0;
 
-class Boid {
+class Boid extends BoidBase {
   constructor(worldWidth, worldHeight, ownFlock, optStartPos) {
-    this.id = ++idProvider;
+    super();
     this.ownFlock = ownFlock;
     this.position = optStartPos;
 
@@ -29,11 +29,6 @@ class Boid {
       }
     }
 
-    this.velocity = Vector.fromAngle(Math.random() * (2 * Math.PI)).mult(Math.random());
-    this.acceleration = new Vector(0, 0);
-    this.perceptionRadius = 50;
-    this.maxForce = 0.2;
-    this.maxSpeed = 4;
     this.obstacleCount = 0;
 
     this.maxSize = 4;
@@ -181,17 +176,6 @@ class Boid {
     this.edges(worldWidth, worldHeight);
   }
 
-  edges(worldWidth, worldHeight) {
-    if (this.position.x > worldWidth)
-      this.position.x = 0;
-    else if (this.position.x < 0)
-      this.position.x = worldWidth;
-
-    if (this.position.y > worldHeight)
-      this.position.y = 0;
-    else if (this.position.y < 0)
-      this.position.y = worldHeight;
-  }
 
   draw(ctx) {
     // ctx.beginPath();

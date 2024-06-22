@@ -3,6 +3,7 @@ import {setAlignmentFactor, setCohesionFactor, setSeparationFactor} from "./stat
 import {Vector} from "./vector.mjs";
 import {Obstacle} from "./obstacle.mjs";
 import {Food} from "./food.mjs";
+import {Predator} from "./predator.mjs";
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext('2d');
@@ -39,6 +40,8 @@ for (let i = 0; i < 10; i++) {
   Food.foods.push(food);
 }
 
+const predator = new Predator(worldWidth, worldHeight);
+
 const update = () => {
   ctx.fillStyle = "white";
   ctx.strokeStyle = "white";
@@ -60,6 +63,9 @@ const update = () => {
   ctx.strokeStyle = 'rgb(200,255,0)';
   Food.update();
   Food.draw(ctx);
+
+  predator.update(worldWidth, worldHeight);
+  predator.draw(ctx);
 
   updateWorldSettings();
 

@@ -1,0 +1,75 @@
+import {Vector} from "./vector.mjs";
+import {Obstacle} from "./obstacle.mjs";
+import {BoidBase} from "./boidbase.mjs";
+
+class Predator extends BoidBase {
+  constructor(worldWidth, worldHeight) {
+    super();
+    this.position = null;
+    while (true) {
+      this.position = new Vector((Math.random()) * worldWidth, (Math.random()) * worldHeight);
+
+      for (const obstacle of Obstacle.obstacles) {
+        const distance = this.position.distance(obstacle.position);
+        if (distance < obstacle.r) {
+          this.position = null;
+          break;
+        }
+      }
+      if (this.position)
+        break;
+    }
+  }
+
+  update(worldWidth, worldHeight) {
+    this.position.addVec(this.velocity);
+
+
+    if (this.acceleration.isZero())
+      this.velocity.mult(1.05);
+    else
+      this.velocity.addVec(this.acceleration);
+    this.velocity.limit(this.maxSpeed);
+    this.acceleration.mult(0); // reset
+    this.edges(worldWidth, worldHeight);
+  }
+
+
+  draw(ctx) {
+    ctx.save();
+    ctx.translate(this.position.x, this.position.y);
+    ctx.rotate(this.velocity.toRadians() - Math.PI / 2);
+
+    // turn speed to color
+    const style = 'hsl(' + 0 + ' 100% 50% / ' + (100) + '%)';
+    ctx.strokeStyle = style;
+    ctx.fillStyle = style;
+    ctx.lineWidth = 3;
+
+    ctx.beginPath();
+    for (let y = -1; y <= 1; y++) {
+      ctx.moveTo(-15, y * 7);
+      ctx.lineTo(0, 10 + y * 7);
+      ctx.lineTo(15, y * 7);
+    }
+    ctx.moveTo(-10, 15);
+    ctx.lineTo(0, 40);
+    ctx.lineTo(10, 15);
+
+    ctx.moveTo(-10, -10);
+    ctx.lineTo(0, -20);
+    ctx.lineTo(10, -10);
+
+    ctx.moveTo(-10, -40);
+    ctx.lineTo(0, -20);
+    ctx.lineTo(10, -40);
+    ctx.lineTo(0, -35);
+    ctx.lineTo(-10, -40);
+
+    ctx.stroke();
+
+    ctx.restore();
+  }
+}
+
+export {Predator}
