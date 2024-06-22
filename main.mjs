@@ -64,6 +64,7 @@ const update = () => {
   Food.update();
   Food.draw(ctx);
 
+  predator.searchFood(flock);
   predator.update(worldWidth, worldHeight);
   predator.draw(ctx);
 
@@ -99,4 +100,4 @@ switchInputs.addEventListener('click', (e) => {
     e.target.innerText = 'X';
 });
 
-// TODO predator, follow a boid?
+// TODO follow a boid?

@@ -5,6 +5,7 @@ import {BoidBase} from "./boidbase.mjs";
 class Predator extends BoidBase {
   constructor(worldWidth, worldHeight) {
     super();
+    this.maxSpeed = 4.5;
     this.position = null;
     while (true) {
       this.position = new Vector((Math.random()) * worldWidth, (Math.random()) * worldHeight);
@@ -19,6 +20,39 @@ class Predator extends BoidBase {
       if (this.position)
         break;
     }
+  }
+
+  searchFood(flock) {
+
+    let oldestBoid = null;
+    // let minDist = Number.MIN_VALUE
+
+    // Find oldest boid reachable
+    for (const boid of flock.flock) {
+      const distance = this.position.distance(boid.position);
+      if (distance < 20) {
+        flock.addDeadBoid(boid);
+        oldestBoid = null;
+        // break;
+      }
+      if (distance < this.perceptionRadius) {
+        if (!oldestBoid)
+          oldestBoid = boid;
+        else if (boid.age > oldestBoid.age)
+          oldestBoid = boid;
+      }
+    }
+
+    if (oldestBoid) {
+      const foodDirection = oldestBoid.position.clone().subVec(this.position);
+      foodDirection.setLength(this.maxSpeed);
+      foodDirection.subVec(this.velocity);
+      foodDirection.limit(this.maxForce);
+      this.acceleration.addVec(foodDirection);
+    }
+
+    const obstacleAvoidance = this.calcObstacleAvoidance();
+    this.avoidObstacle(obstacleAvoidance);
   }
 
   update(worldWidth, worldHeight) {

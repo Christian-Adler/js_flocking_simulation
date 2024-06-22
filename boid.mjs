@@ -29,7 +29,6 @@ class Boid extends BoidBase {
       }
     }
 
-    this.obstacleCount = 0;
 
     this.maxSize = 4;
     this.size = 1;
@@ -44,7 +43,7 @@ class Boid extends BoidBase {
     const alignment = Vector.zero();
     const cohesion = Vector.zero();
     const separation = Vector.zero();
-    const obstacleAvoidance = Vector.zero();
+    const obstacleAvoidance = this.calcObstacleAvoidance();
     const foodDirection = Vector.zero();
 
     for (const other of boids) {
@@ -79,16 +78,6 @@ class Boid extends BoidBase {
       separation.limit(this.maxForce);
     }
 
-    this.obstacleCount = 0;
-    for (const obstacle of Obstacle.obstacles) {
-      const distance = this.position.distance(obstacle.position);
-      if (distance < this.perceptionRadius + obstacle.r) {
-        const diff = this.position.clone().subVec(obstacle.position);
-        diff.mult(1 / this.perceptionRadius);
-        obstacleAvoidance.addVec(diff);
-        this.obstacleCount++;
-      }
-    }
 
     let shortestDistance = Number.MAX_SAFE_INTEGER;
     let nearestFood = null;
@@ -124,17 +113,9 @@ class Boid extends BoidBase {
       this.acceleration.addVec(foodDirection.mult(2));
     }
 
-    // Remove direction to obstacle from vector
-    // https://stackoverflow.com/questions/5060082/eliminating-a-direction-from-a-vector
-    if (!this.velocity.isZero() && !obstacleAvoidance.isZero()) {
-      const obstacleNormVec = obstacleAvoidance.normalize();
-      const dotProductVal = this.velocity.clone().dotProduct(obstacleNormVec);
-      const negVelocity = this.velocity.clone().subVec(obstacleNormVec.mult(dotProductVal));
-      if (this.obstacleCount > 1)
-        negVelocity.mult(this.obstacleCount);
-      this.acceleration.addVec(negVelocity);
-    }
+    this.avoidObstacle(obstacleAvoidance);
   }
+
 
   checkForFood(worldWidth, worldHeight) {
     for (let i = 0; i < Food.foods.length; i++) {

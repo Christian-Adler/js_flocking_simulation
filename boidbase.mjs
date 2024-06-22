@@ -1,4 +1,5 @@
 import {Vector} from "./vector.mjs";
+import {Obstacle} from "./obstacle.mjs";
 
 let idProvider = 0;
 
@@ -11,6 +12,36 @@ class BoidBase {
     this.perceptionRadius = 50;
     this.maxForce = 0.2;
     this.maxSpeed = 4;
+
+    this.obstacleCount = 0;
+  }
+
+  calcObstacleAvoidance() {
+    const obstacleAvoidance = Vector.zero();
+    this.obstacleCount = 0;
+    for (const obstacle of Obstacle.obstacles) {
+      const distance = this.position.distance(obstacle.position);
+      if (distance < this.perceptionRadius + obstacle.r) {
+        const diff = this.position.clone().subVec(obstacle.position);
+        diff.mult(1 / this.perceptionRadius);
+        obstacleAvoidance.addVec(diff);
+        this.obstacleCount++;
+      }
+    }
+    return obstacleAvoidance;
+  }
+
+  avoidObstacle(obstacleAvoidance) {
+    // Remove direction to obstacle from vector
+    // https://stackoverflow.com/questions/5060082/eliminating-a-direction-from-a-vector
+    if (!this.velocity.isZero() && !obstacleAvoidance.isZero()) {
+      const obstacleNormVec = obstacleAvoidance.normalize();
+      const dotProductVal = this.velocity.clone().dotProduct(obstacleNormVec);
+      const negVelocity = this.velocity.clone().subVec(obstacleNormVec.mult(dotProductVal));
+      if (this.obstacleCount > 1)
+        negVelocity.mult(this.obstacleCount);
+      this.acceleration.addVec(negVelocity);
+    }
   }
 
   edges(worldWidth, worldHeight) {
