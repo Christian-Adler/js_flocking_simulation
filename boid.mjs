@@ -30,6 +30,8 @@ class Boid {
     this.perceptionRadius = 50;
     this.maxForce = 0.2;
     this.maxSpeed = 4;
+
+    this.size = 1;
   }
 
   alignAndCohesionAndSeparation(boids) {
@@ -103,7 +105,7 @@ class Boid {
   update(worldWidth, worldHeight) {
     this.position.addVec(this.velocity);
     if (this.acceleration.isZero())
-      this.velocity.mult(1.01);
+      this.velocity.mult(1.05);
     else
       this.velocity.addVec(this.acceleration);
     this.velocity.limit(this.maxSpeed);
@@ -143,20 +145,20 @@ class Boid {
     ctx.fillStyle = style;
 
     ctx.beginPath();
-    ctx.arc(0, 0, 5, Math.PI, Math.PI * 2);
+    ctx.arc(0, 0, 5 * this.size, Math.PI, Math.PI * 2);
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(-5, 0);
-    ctx.lineTo(0, 20);
-    ctx.lineTo(5, 0);
+    ctx.moveTo(-5 * this.size, 0);
+    ctx.lineTo(0, 20 * this.size);
+    ctx.lineTo(5 * this.size, 0);
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(0, -5);
-    ctx.lineTo(5, -15);
-    ctx.lineTo(-5, -15);
-    ctx.lineTo(0, -5);
+    ctx.moveTo(0, -5 * this.size);
+    ctx.lineTo(5 * this.size, -15 * this.size);
+    ctx.lineTo(-5 * this.size, -15 * this.size);
+    ctx.lineTo(0, -5 * this.size);
     ctx.stroke();
     ctx.restore();
   }
