@@ -9,7 +9,6 @@ class Food {
     this.position = position;
     this.origin = position.clone();
     this.r = 3;
-    Food.foods.push(this);
   }
 
   draw(ctx) {
@@ -22,29 +21,25 @@ class Food {
     ctx.restore();
   }
 
-  static createRandomFood(worldWidth, worldHeight) {
-    let position;
-    let foundPos = false;
-    let tryCount = 0;
-    while (!foundPos && tryCount < 20) {
-      foundPos = true;
-      tryCount++;
-      position = new Vector((Math.random()) * worldWidth, (Math.random()) * worldHeight);
+  static findRandomPos(worldWidth, worldHeight) {
+    while (true) {
+      let position = new Vector((Math.random()) * worldWidth, (Math.random()) * worldHeight);
 
       for (const obstacle of Obstacle.obstacles) {
         const distance = position.distance(obstacle.position);
         if (distance < obstacle.r + 50) {
-          foundPos = false;
+          position = null;
           break;
         }
       }
-    }
 
-    return new Food(position);
+      if (position)
+        return position;
+    }
   }
 
-  static foodCount() {
-    return Food.foods.length;
+  static createRandomFood(worldWidth, worldHeight) {
+    return new Food(Food.findRandomPos(worldWidth, worldHeight));
   }
 
   static update() {

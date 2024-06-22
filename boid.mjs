@@ -1,6 +1,7 @@
 import {Vector} from "./vector.mjs";
 import {getAlignmentFactor, getCohesionFactor, getSeparationFactor} from "./statics.mjs";
 import {Obstacle} from "./obstacle.mjs";
+import {Food} from "./food.mjs";
 
 let idProvider = 0;
 
@@ -32,7 +33,11 @@ class Boid {
     this.maxSpeed = 4;
     this.obstacleCount = 0;
 
+    this.maxSize = 4;
     this.size = 1;
+
+    this.maxAge = 10000;
+    this.age = -1000;
   }
 
   alignAndCohesionAndSeparation(boids) {
@@ -42,11 +47,12 @@ class Boid {
     const cohesion = Vector.zero();
     const separation = Vector.zero();
     const obstacleAvoidance = Vector.zero();
+    const foodDirection = Vector.zero();
 
     for (const other of boids) {
       if (other.id === this.id) continue;
       const distance = this.position.distance(other.position);
-      if (distance < this.perceptionRadius) {
+      if (distance > 0 && distance < this.perceptionRadius) {
         alignment.addVec(other.velocity);
 
         cohesion.addVec(other.position);
@@ -86,14 +92,39 @@ class Boid {
       }
     }
 
-    return {alignment, cohesion, separation, obstacleAvoidance};
+    let shortestDistance = Number.MAX_SAFE_INTEGER;
+    let nearestFood = null;
+    for (const food of Food.foods) {
+      const distance = this.position.distance(food.position);
+      if (distance < this.perceptionRadius && distance < shortestDistance) {
+        nearestFood = food;
+        shortestDistance = distance;
+      }
+    }
+    if (nearestFood) {
+      const diff = nearestFood.position.clone().subVec(this.position);
+      diff.mult(1 / this.perceptionRadius);
+      foodDirection.addVec(diff);
+    }
+
+    return {alignment, cohesion, separation, obstacleAvoidance, foodDirection};
   }
 
   flock(boids) {
-    const {alignment, cohesion, separation, obstacleAvoidance} = this.alignAndCohesionAndSeparation(boids);
+    const {
+      alignment,
+      cohesion,
+      separation,
+      obstacleAvoidance,
+      foodDirection
+    } = this.alignAndCohesionAndSeparation(boids);
+
     this.acceleration.addVec(alignment.mult(getAlignmentFactor()));
     this.acceleration.addVec(cohesion.mult(getCohesionFactor()));
     this.acceleration.addVec(separation.mult(getSeparationFactor()));
+    if (!foodDirection.isZero()) {
+      this.acceleration.addVec(foodDirection.mult(2));
+    }
 
     // Remove direction to obstacle from vector
     // https://stackoverflow.com/questions/5060082/eliminating-a-direction-from-a-vector
@@ -107,17 +138,37 @@ class Boid {
     }
   }
 
+  checkForFood(worldWidth, worldHeight) {
+    for (let i = 0; i < Food.foods.length; i++) {
+      const food = Food.foods[i];
+      const distance = this.position.distance(food.position);
+      if (distance < 5) {
+        if (this.size < this.maxSize)
+          this.size += 0.5;
+        if (this.age > 0) this.age = 0;
+        food.origin = Food.findRandomPos(worldWidth, worldHeight);
+        break;
+      }
+    }
+  }
+
   update(worldWidth, worldHeight) {
     this.position.addVec(this.velocity);
+
+    if (this.age < this.maxAge)
+      this.age++;
+
+    this.checkForFood(worldWidth, worldHeight);
+
     if (this.acceleration.isZero())
       this.velocity.mult(1.05);
     else
       this.velocity.addVec(this.acceleration);
-    let velocityLimit = this.maxSpeed;
+    let velocityLimit = this.maxSpeed - (this.maxSpeed - 0.1) / this.maxAge * Math.max(0, this.age);
     if (this.obstacleCount > 0)
       velocityLimit /= this.obstacleCount;
     this.velocity.limit(velocityLimit);
-    this.acceleration.mult(0);
+    this.acceleration.mult(0); // reset
     this.edges(worldWidth, worldHeight);
   }
 
@@ -151,22 +202,28 @@ class Boid {
     const style = 'hsl(' + degVelocity + ' 100% 50% / ' + (80) + '%)';
     ctx.strokeStyle = style;
     ctx.fillStyle = style;
+    ctx.lineWidth = this.size;
+
+    let ageSizeFactor = 1;
+    if (this.age < 0) {
+      ageSizeFactor += this.age / 2000;
+    }
 
     ctx.beginPath();
-    ctx.arc(0, 0, 5 * this.size, Math.PI, Math.PI * 2);
+    ctx.arc(0, 0, 5 * ageSizeFactor, Math.PI, Math.PI * 2);
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(-5 * this.size, 0);
-    ctx.lineTo(0, 20 * this.size);
-    ctx.lineTo(5 * this.size, 0);
+    ctx.moveTo(-5 * ageSizeFactor, 0);
+    ctx.lineTo(0, 20 * ageSizeFactor);
+    ctx.lineTo(5 * ageSizeFactor, 0);
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(0, -5 * this.size);
-    ctx.lineTo(5 * this.size, -15 * this.size);
-    ctx.lineTo(-5 * this.size, -15 * this.size);
-    ctx.lineTo(0, -5 * this.size);
+    ctx.moveTo(0, -5 * ageSizeFactor);
+    ctx.lineTo(5 * ageSizeFactor, -15 * ageSizeFactor);
+    ctx.lineTo(-5 * ageSizeFactor, -15 * ageSizeFactor);
+    ctx.lineTo(0, -5 * ageSizeFactor);
     ctx.stroke();
     ctx.restore();
   }

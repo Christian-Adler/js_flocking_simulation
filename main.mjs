@@ -34,6 +34,10 @@ for (let i = 0; i < Math.floor(worldWidth / 50); i++) {
 
 const flock = new Flock(Math.floor(worldWidth / 10), worldWidth, worldHeight);
 
+for (let i = 0; i < 10; i++) {
+  const food = Food.createRandomFood(worldWidth, worldHeight);
+  Food.foods.push(food);
+}
 
 const update = () => {
   ctx.fillStyle = "white";
@@ -54,8 +58,6 @@ const update = () => {
   Obstacle.draw(ctx);
 
   ctx.strokeStyle = 'rgb(200,255,0)';
-  if (Food.foodCount() < 10)
-    Food.createRandomFood(worldWidth, worldHeight);
   Food.update();
   Food.draw(ctx);
 
