@@ -2,6 +2,7 @@ import {Flock} from "./flock.mjs";
 import {setAlignmentFactor, setCohesionFactor, setSeparationFactor} from "./statics.mjs";
 import {Vector} from "./vector.mjs";
 import {Obstacle} from "./obstacle.mjs";
+import {Food} from "./food.mjs";
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext('2d');
@@ -51,6 +52,12 @@ const update = () => {
 
   ctx.fillStyle = 'rgba(64,64,64,0.2)';
   Obstacle.draw(ctx);
+
+  ctx.strokeStyle = 'rgb(200,255,0)';
+  if (Food.foodCount() < 10)
+    Food.createRandomFood(worldWidth, worldHeight);
+  Food.update();
+  Food.draw(ctx);
 
   updateWorldSettings();
 
