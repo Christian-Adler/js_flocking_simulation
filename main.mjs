@@ -31,7 +31,7 @@ for (let i = 0; i < Math.floor(worldWidth / 50); i++) {
   new Obstacle(new Vector((worldWidth - oR * 2) * Math.random() + oR, (worldHeight - oR * 2) * Math.random() + oR), oR / 2 + oR * Math.random());
 }
 
-const flock = new Flock(100, worldWidth, worldHeight);
+const flock = new Flock(Math.floor(worldWidth / 10), worldWidth, worldHeight);
 
 
 const update = () => {
@@ -49,6 +49,7 @@ const update = () => {
 
   ctx.restore();
 
+  ctx.fillStyle = 'rgba(64,64,64,0.2)';
   Obstacle.draw(ctx);
 
   updateWorldSettings();
