@@ -30,6 +30,7 @@ class Boid {
     this.perceptionRadius = 50;
     this.maxForce = 0.2;
     this.maxSpeed = 4;
+    this.obstacleCount = 0;
 
     this.size = 1;
   }
@@ -74,12 +75,14 @@ class Boid {
       separation.limit(this.maxForce);
     }
 
+    this.obstacleCount = 0;
     for (const obstacle of Obstacle.obstacles) {
       const distance = this.position.distance(obstacle.position);
       if (distance < this.perceptionRadius + obstacle.r) {
         const diff = this.position.clone().subVec(obstacle.position);
         diff.mult(1 / this.perceptionRadius);
         obstacleAvoidance.addVec(diff);
+        this.obstacleCount++;
       }
     }
 
@@ -98,6 +101,8 @@ class Boid {
       const obstacleNormVec = obstacleAvoidance.normalize();
       const dotProductVal = this.velocity.clone().dotProduct(obstacleNormVec);
       const negVelocity = this.velocity.clone().subVec(obstacleNormVec.mult(dotProductVal));
+      if (this.obstacleCount > 1)
+        negVelocity.mult(this.obstacleCount);
       this.acceleration.addVec(negVelocity);
     }
   }
@@ -108,7 +113,10 @@ class Boid {
       this.velocity.mult(1.05);
     else
       this.velocity.addVec(this.acceleration);
-    this.velocity.limit(this.maxSpeed);
+    let velocityLimit = this.maxSpeed;
+    if (this.obstacleCount > 0)
+      velocityLimit /= this.obstacleCount;
+    this.velocity.limit(velocityLimit);
     this.acceleration.mult(0);
     this.edges(worldWidth, worldHeight);
   }
