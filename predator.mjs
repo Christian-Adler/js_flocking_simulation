@@ -6,6 +6,8 @@ class Predator extends BoidBase {
   constructor(worldWidth, worldHeight) {
     super();
     this.maxSpeed = 4.5;
+    this.foodPerceptionRadius = 150;
+    this.foodEatRadius = 30;
     this.position = null;
     while (true) {
       this.position = new Vector((Math.random()) * worldWidth, (Math.random()) * worldHeight);
@@ -30,15 +32,15 @@ class Predator extends BoidBase {
     // Find oldest boid reachable
     for (const boid of flock.flock) {
       const distance = this.position.distance(boid.position);
-      if (distance < 20) {
+      if (distance < this.foodEatRadius) {
         flock.addDeadBoid(boid);
         oldestBoid = null;
         // break;
-      }
-      if (distance < this.perceptionRadius) {
+      } else if (distance < this.foodPerceptionRadius) {
         if (!oldestBoid)
           oldestBoid = boid;
         else if (boid.age > oldestBoid.age)
+            // else if (distance < minDist)
           oldestBoid = boid;
       }
     }
