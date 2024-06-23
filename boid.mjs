@@ -3,6 +3,7 @@ import {getAlignmentFactor, getCohesionFactor, getSeparationFactor} from "./stat
 import {Obstacle} from "./obstacle.mjs";
 import {Food} from "./food.mjs";
 import {BoidBase} from "./boidbase.mjs";
+import {Predator} from "./predator.mjs";
 
 
 class Boid extends BoidBase {
@@ -45,6 +46,7 @@ class Boid extends BoidBase {
     const cohesion = Vector.zero();
     const separation = Vector.zero();
     const obstacleAvoidance = this.calcObstacleAvoidance();
+    const predatorAvoidance = this.calcAvoidance(Predator.predators.map(p => p.position.clone()));
     const foodDirection = Vector.zero();
 
     for (const other of boids) {
@@ -95,7 +97,7 @@ class Boid extends BoidBase {
       foodDirection.addVec(diff);
     }
 
-    return {alignment, cohesion, separation, obstacleAvoidance, foodDirection};
+    return {alignment, cohesion, separation, obstacleAvoidance, predatorAvoidance, foodDirection};
   }
 
   flock(boids) {
@@ -103,13 +105,14 @@ class Boid extends BoidBase {
       alignment,
       cohesion,
       separation,
-      obstacleAvoidance,
+      obstacleAvoidance, predatorAvoidance,
       foodDirection
     } = this.alignAndCohesionAndSeparation(boids);
 
     this.acceleration.addVec(alignment.mult(getAlignmentFactor()));
     this.acceleration.addVec(cohesion.mult(getCohesionFactor()));
     this.acceleration.addVec(separation.mult(getSeparationFactor()));
+    this.acceleration.addVec(predatorAvoidance);
     if (!foodDirection.isZero()) {
       // Reduce so far acc to force food direction
       this.acceleration = this.velocity.clone().mult(-0.1);

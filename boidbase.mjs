@@ -31,6 +31,20 @@ class BoidBase {
     return obstacleAvoidance;
   }
 
+  calcAvoidance(toAvoidPositions) {
+    const posAvoidance = Vector.zero();
+    this.obstacleCount = 0;
+    for (const otherPos of toAvoidPositions) {
+      const distance = this.position.distance(otherPos);
+      if (distance < this.perceptionRadius) {
+        const diff = this.position.clone().subVec(otherPos);
+        diff.mult(1 / this.perceptionRadius);
+        posAvoidance.addVec(diff);
+      }
+    }
+    return posAvoidance;
+  }
+
   avoidObstacle(obstacleAvoidance) {
     // Remove direction to obstacle from vector
     // https://stackoverflow.com/questions/5060082/eliminating-a-direction-from-a-vector

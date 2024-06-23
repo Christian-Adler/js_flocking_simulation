@@ -100,4 +100,4 @@ switchInputs.addEventListener('click', (e) => {
     e.target.innerText = 'X';
 });
 
-// TODO follow a boid? boids avod predators
+// TODO follow a boid?
