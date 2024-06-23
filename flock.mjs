@@ -22,7 +22,8 @@ class Flock {
       for (let i = 0; i < this.birthRate * 2; i++) {
         this.flock.push(new Boid(worldWidth, worldHeight, this, new Vector(0, 0)));
       }
-      this.updateBoidCount(worldWidth, worldHeight);
+      if (this.birthRate > 0)
+        this.updateBoidCount(worldWidth, worldHeight);
     }
   }
 
