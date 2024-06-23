@@ -5,11 +5,13 @@ class Obstacle {
   constructor(position, r) {
     this.position = position;
     this.r = r;
+    this.color = 'rgba(0,' + (124 + (Math.random() - 0.5) * 50) + ',' + (95 + (Math.random() - 0.5) * 50) + ',0.2)';
     Obstacle.obstacles.push(this);
   }
 
   draw(ctx, counter) {
     ctx.save();
+    ctx.fillStyle = this.color;
     ctx.translate(this.position.x, this.position.y);
     ctx.beginPath();
     ctx.arc(0, 0, this.r, 0, Math.PI * 2);
