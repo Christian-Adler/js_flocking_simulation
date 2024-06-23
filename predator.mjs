@@ -3,6 +3,8 @@ import {Obstacle} from "./obstacle.mjs";
 import {BoidBase} from "./boidbase.mjs";
 
 class Predator extends BoidBase {
+  static predators = [];
+
   constructor(worldWidth, worldHeight) {
     super();
     this.maxSpeed = 4.5;
@@ -22,6 +24,7 @@ class Predator extends BoidBase {
       if (this.position)
         break;
     }
+    Predator.predators.push(this);
   }
 
   searchFood(flock) {
@@ -59,7 +62,6 @@ class Predator extends BoidBase {
 
   update(worldWidth, worldHeight) {
     this.position.addVec(this.velocity);
-
 
     if (this.acceleration.isZero())
       this.velocity.mult(1.05);
@@ -105,6 +107,25 @@ class Predator extends BoidBase {
     ctx.stroke();
 
     ctx.restore();
+  }
+
+
+  static predatorsSearchFood(flock) {
+    for (const pred of Predator.predators) {
+      pred.searchFood(flock);
+    }
+  }
+
+  static predatorsUpdate(worldWidth, worldHeight) {
+    for (const pred of Predator.predators) {
+      pred.update(worldWidth, worldHeight);
+    }
+  }
+
+  static predatorsDraw(ctx) {
+    for (const pred of Predator.predators) {
+      pred.draw(ctx);
+    }
   }
 }
 

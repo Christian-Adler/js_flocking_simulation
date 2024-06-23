@@ -40,7 +40,7 @@ for (let i = 0; i < 10; i++) {
   Food.foods.push(food);
 }
 
-const predator = new Predator(worldWidth, worldHeight);
+new Predator(worldWidth, worldHeight);
 
 const update = () => {
   ctx.fillStyle = "white";
@@ -51,11 +51,14 @@ const update = () => {
   }
   ctx.clearRect(0, 0, worldWidth, worldHeight);
 
-  ctx.save();
+  flock.flocking(worldWidth, worldHeight);
+  Predator.predatorsSearchFood(flock);
+
   flock.update(worldWidth, worldHeight);
   flock.draw(ctx);
 
-  ctx.restore();
+  Predator.predatorsUpdate(worldWidth, worldHeight);
+  Predator.predatorsDraw(ctx);
 
   ctx.fillStyle = 'rgba(64,64,64,0.2)';
   Obstacle.draw(ctx);
@@ -63,10 +66,6 @@ const update = () => {
   ctx.strokeStyle = 'rgb(200,255,0)';
   Food.update();
   Food.draw(ctx);
-
-  predator.searchFood(flock);
-  predator.update(worldWidth, worldHeight);
-  predator.draw(ctx);
 
   updateWorldSettings();
 
@@ -100,4 +99,4 @@ switchInputs.addEventListener('click', (e) => {
     e.target.innerText = 'X';
 });
 
-// TODO follow a boid?
+// TODO follow a boid? Flock Predator -> birth as well

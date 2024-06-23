@@ -33,7 +33,7 @@ class Flock {
     this.deadBoids.push(boid);
   }
 
-  update(worldWidth, worldHeight) {
+  flocking(worldWidth, worldHeight) {
     for (const matureBoid of this.matureBoids) {
       const idx = this.flock.findIndex(b => b.id === matureBoid.id);
       if (idx >= 0) {
@@ -58,6 +58,9 @@ class Flock {
     for (const boid of this.flock) {
       boid.flock(this.flock);
     }
+  }
+
+  update(worldWidth, worldHeight) {
     for (const boid of this.flock) {
       boid.update(worldWidth, worldHeight);
     }
