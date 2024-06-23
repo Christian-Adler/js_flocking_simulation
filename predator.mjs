@@ -4,14 +4,16 @@ import {BoidBase} from "./boidbase.mjs";
 
 class Predator extends BoidBase {
   static predators = [];
+  static  predatorCountSpan;
 
-  constructor(worldWidth, worldHeight) {
+  constructor(worldWidth, worldHeight, optStartPos) {
     super();
     this.maxSpeed = 4.5;
     this.foodPerceptionRadius = 150;
     this.foodEatRadius = 30;
-    this.position = null;
-    while (true) {
+    this.position = optStartPos;
+
+    while (!this.position) {
       this.position = new Vector((Math.random()) * worldWidth, (Math.random()) * worldHeight);
 
       for (const obstacle of Obstacle.obstacles) {
@@ -21,10 +23,28 @@ class Predator extends BoidBase {
           break;
         }
       }
-      if (this.position)
-        break;
     }
     Predator.predators.push(this);
+
+    this.foodIntervalLength = 10 * 1000;
+    this.foodActIntervalStart = Date.now();
+    this.foodActIntervalStart -= this.foodActIntervalStart % this.foodIntervalLength;
+    this.foodActIntervalStart += this.foodIntervalLength;
+    this.foodCount = 0;
+    this.foodRate = 0;
+
+    if (!Predator.predatorCountSpan)
+      Predator.predatorCountSpan = document.getElementById("predatorCount");
+    Predator.updatePredatorCount(worldWidth, worldHeight);
+  }
+
+  static updatePredatorCount(worldWidth, worldHeight) {
+    let amount = Predator.predators.length;
+    Predator.predatorCountSpan.innerText = 'Predators: ' + amount;
+    if (amount === 0) {
+      new Predator(worldWidth, worldHeight);
+      this.updateBoidCount(worldWidth, worldHeight);
+    }
   }
 
   searchFood(flock) {
@@ -37,7 +57,8 @@ class Predator extends BoidBase {
       const distance = this.position.distance(boid.position);
       if (distance < this.foodEatRadius) {
         flock.addDeadBoid(boid);
-        oldestBoid = null;
+        this.foodCount++;
+        // oldestBoid = null;
         // break;
       } else if (distance < this.foodPerceptionRadius) {
         if (!oldestBoid)
@@ -63,11 +84,32 @@ class Predator extends BoidBase {
   update(worldWidth, worldHeight) {
     this.position.addVec(this.velocity);
 
+    const now = Date.now();
+    const actInterval = now - now % this.foodIntervalLength;
+    if (actInterval > this.foodActIntervalStart) {
+      this.foodRate = this.foodCount / this.foodIntervalLength;
+      this.foodCount = 0;
+      this.foodActIntervalStart = actInterval;
+      // console.log(this.foodRate);
+
+      if (this.foodRate > 0.003) {
+        new Predator(worldWidth, worldHeight, this.position.clone());
+      } else if (this.foodRate < 0.001 && Predator.predators.length > 1) {
+        const idx = Predator.predators.findIndex(p => p.id === this.id);
+        Predator.predators.splice(idx, 1);
+      }
+      Predator.updatePredatorCount(worldWidth, worldHeight);
+    }
+
     if (this.acceleration.isZero())
       this.velocity.mult(1.05);
     else
       this.velocity.addVec(this.acceleration);
-    this.velocity.limit(this.maxSpeed);
+    let speedLimit = this.maxSpeed;
+    if (this.foodRate > 0) {
+      speedLimit += (this.foodRate - 0.003) * 1000;
+    }
+    this.velocity.limit(speedLimit);
     this.acceleration.mult(0); // reset
     this.edges(worldWidth, worldHeight);
   }
@@ -79,7 +121,7 @@ class Predator extends BoidBase {
     ctx.rotate(this.velocity.toRadians() - Math.PI / 2);
 
     // turn speed to color
-    const style = 'hsl(' + 0 + ' 100% 50% / ' + (100) + '%)';
+    let style = 'hsl(' + 0 + ' 100% 50% / ' + (100) + '%)';
     ctx.strokeStyle = style;
     ctx.fillStyle = style;
     ctx.lineWidth = 3;
@@ -104,6 +146,15 @@ class Predator extends BoidBase {
     ctx.lineTo(0, -35);
     ctx.lineTo(-10, -40);
 
+    ctx.stroke();
+
+    style = 'hsl(' + this.foodRate * 10000 + ' 100% 50% / ' + (100) + '%)';
+    ctx.strokeStyle = style;
+    ctx.fillStyle = style;
+    ctx.beginPath();
+    ctx.moveTo(-6, 17);
+    ctx.lineTo(0, 30);
+    ctx.lineTo(6, 17);
     ctx.stroke();
 
     ctx.restore();
