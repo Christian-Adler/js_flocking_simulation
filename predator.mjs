@@ -108,6 +108,7 @@ class Predator extends BoidBase {
     let speedLimit = this.maxSpeed;
     if (this.foodRate > 0) {
       speedLimit += (this.foodRate - 0.003) * 1000;
+      if (speedLimit > this.maxSpeed * 1.5) speedLimit = this.maxSpeed * 1.5;
     }
     this.velocity.limit(speedLimit);
     this.acceleration.mult(0); // reset
