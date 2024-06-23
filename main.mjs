@@ -78,6 +78,7 @@ const settings = [
   {id: 'rangeAlignment', setter: setAlignmentFactor},
   {id: 'rangeCohesion', setter: setCohesionFactor},
   {id: 'rangeSeparation', setter: setSeparationFactor},
+  {id: 'rangeFood', setter: Food.setFoodAmount},
 ];
 for (const setting of settings) {
   const range = document.getElementById(setting.id);
@@ -99,4 +100,4 @@ switchInputs.addEventListener('click', (e) => {
     e.target.innerText = 'X';
 });
 
-// TODO follow a boid? Flock Predator -> birth as well
+// TODO follow a boid? boids avod predators

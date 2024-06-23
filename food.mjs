@@ -42,6 +42,16 @@ class Food {
     return new Food(Food.findRandomPos(worldWidth, worldHeight));
   }
 
+  static setFoodAmount(val) {
+    while (Food.foods.length > val) {
+      Food.foods.pop();
+    }
+    while (Food.foods.length < val) {
+      const food = Food.createRandomFood(100, 100);
+      Food.foods.push(food);
+    }
+  }
+
   static update() {
     Food.step += 0.003;
     if (Food.step > 15 * Math.PI)
