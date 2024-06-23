@@ -34,7 +34,8 @@ class Boid extends BoidBase {
     this.size = 1;
 
     this.maxAge = 10000;
-    this.age = -1000;
+    this.birthAge = -2000;
+    this.age = this.birthAge;
   }
 
   alignAndCohesionAndSeparation(boids) {
@@ -110,7 +111,9 @@ class Boid extends BoidBase {
     this.acceleration.addVec(cohesion.mult(getCohesionFactor()));
     this.acceleration.addVec(separation.mult(getSeparationFactor()));
     if (!foodDirection.isZero()) {
-      this.acceleration.addVec(foodDirection.mult(2));
+      // Reduce so far acc to force food direction
+      this.acceleration = this.velocity.clone().mult(-0.1);
+      this.acceleration.addVec(foodDirection);
     }
 
     this.avoidObstacle(obstacleAvoidance);
@@ -127,7 +130,7 @@ class Boid extends BoidBase {
         else
           this.ownFlock.addMatureBoid(this);
 
-        if (this.age > 0)
+        if (this.age > 0) // reset age
           this.age = 0;
         food.origin = Food.findRandomPos(worldWidth, worldHeight);
         break;
@@ -180,7 +183,7 @@ class Boid extends BoidBase {
 
     let ageSizeFactor = 1;
     if (this.age < 0) {
-      ageSizeFactor += this.age / 2000;
+      ageSizeFactor += this.age / (this.birthAge * -2);
     }
 
     ctx.beginPath();
