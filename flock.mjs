@@ -6,8 +6,22 @@ class Flock {
     this.flock = [];
     this.matureBoids = [];
     this.deadBoids = [];
+    this.birthRate = 25;
     for (let i = 0; i < n; i++) {
       this.flock.push(new Boid(worldWidth, worldHeight, this));
+    }
+    this.boidCountSpan = document.getElementById("boidCount");
+    this.updateBoidCount(worldWidth, worldHeight);
+  }
+
+  updateBoidCount(worldWidth, worldHeight) {
+    let amount = this.flock.length;
+    this.boidCountSpan.innerText = 'Boids: ' + amount;
+    if (amount === 0) {
+      for (let i = 0; i < this.birthRate; i++) {
+        this.flock.push(new Boid(worldWidth, worldHeight, this));
+      }
+      this.updateBoidCount(worldWidth, worldHeight);
     }
   }
 
@@ -24,8 +38,9 @@ class Flock {
       const idx = this.flock.findIndex(b => b.id === matureBoid.id);
       if (idx >= 0) {
         this.flock.splice(idx, 1);
-        this.flock.push(new Boid(worldWidth, worldHeight, this, matureBoid.position.clone()));
-        this.flock.push(new Boid(worldWidth, worldHeight, this, matureBoid.position.clone()));
+        for (let i = 0; i < this.birthRate; i++) {
+          this.flock.push(new Boid(worldWidth, worldHeight, this, matureBoid.position.clone()));
+        }
       }
     }
     for (const deadBoid of this.deadBoids) {
@@ -33,6 +48,11 @@ class Flock {
       if (idx >= 0) {
         this.flock.splice(idx, 1);
       }
+    }
+    if (this.matureBoids.length > 0 || this.deadBoids.length > 0) {
+      this.matureBoids = [];
+      this.deadBoids = [];
+      this.updateBoidCount(worldWidth, worldHeight);
     }
 
     for (const boid of this.flock) {
