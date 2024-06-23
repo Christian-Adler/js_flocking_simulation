@@ -4,7 +4,8 @@ import {BoidBase} from "./boidbase.mjs";
 
 class Predator extends BoidBase {
   static predators = [];
-  static  predatorCountSpan;
+  static predatorCountSpan;
+  static rebirthTimer = null;
 
   constructor(worldWidth, worldHeight, optStartPos) {
     super();
@@ -33,48 +34,57 @@ class Predator extends BoidBase {
     this.foodCount = 0;
     this.foodRate = 0;
 
+    this.deathBlur = 0; // if died, fade out
+    this.deathBlurStep = 0.1;
+
     if (!Predator.predatorCountSpan)
       Predator.predatorCountSpan = document.getElementById("predatorCount");
-    Predator.updatePredatorCount(worldWidth, worldHeight);
+    Predator.updatePredatorCount();
   }
 
-  static updatePredatorCount(worldWidth, worldHeight) {
+  static updatePredatorCount() {
     let amount = Predator.predators.length;
     Predator.predatorCountSpan.innerText = 'Predators: ' + amount;
     if (amount === 0) {
-      new Predator(worldWidth, worldHeight);
-      this.updateBoidCount(worldWidth, worldHeight);
+      if (Predator.rebirthTimer)
+        return;
+      Predator.rebirthTimer = setTimeout(() => {
+        new Predator(0, 0, new Vector(0, 0));
+        this.updatePredatorCount();
+        Predator.rebirthTimer = null;
+      }, 10000);
     }
   }
 
   searchFood(flock) {
+    if (this.deathBlur <= 0) {
+      let oldestBoid = null;
+      // let minDist = Number.MIN_VALUE
 
-    let oldestBoid = null;
-    // let minDist = Number.MIN_VALUE
-
-    // Find oldest boid reachable
-    for (const boid of flock.flock) {
-      const distance = this.position.distance(boid.position);
-      if (distance < this.foodEatRadius) {
-        flock.addDeadBoid(boid);
-        this.foodCount++;
-        // oldestBoid = null;
-        // break;
-      } else if (distance < this.foodPerceptionRadius) {
-        if (!oldestBoid)
-          oldestBoid = boid;
-        else if (boid.age > oldestBoid.age)
-            // else if (distance < minDist)
-          oldestBoid = boid;
+      // Find oldest boid reachable
+      for (const boid of flock.flock) {
+        const distance = this.position.distance(boid.position);
+        if (distance < this.foodEatRadius) {
+          flock.addDeadBoid(boid);
+          this.foodCount++;
+          // oldestBoid = null;
+          // break;
+        } else if (distance < this.foodPerceptionRadius) {
+          if (!oldestBoid)
+            oldestBoid = boid;
+          else if (boid.age > oldestBoid.age)
+              // else if (distance < minDist)
+            oldestBoid = boid;
+        }
       }
-    }
 
-    if (oldestBoid) {
-      const foodDirection = oldestBoid.position.clone().subVec(this.position);
-      foodDirection.setLength(this.maxSpeed);
-      foodDirection.subVec(this.velocity);
-      foodDirection.limit(this.maxForce);
-      this.acceleration.addVec(foodDirection);
+      if (oldestBoid) {
+        const foodDirection = oldestBoid.position.clone().subVec(this.position);
+        foodDirection.setLength(this.maxSpeed);
+        foodDirection.subVec(this.velocity);
+        foodDirection.limit(this.maxForce);
+        this.acceleration.addVec(foodDirection);
+      }
     }
 
     const obstacleAvoidance = this.calcObstacleAvoidance();
@@ -82,23 +92,28 @@ class Predator extends BoidBase {
   }
 
   update(worldWidth, worldHeight) {
-    this.position.addVec(this.velocity);
+    if (this.deathBlur > 0)
+      this.position.addVec(this.velocity.clone().limit(this.maxSpeed * (100 - this.deathBlur) / 100));
+    else
+      this.position.addVec(this.velocity);
 
-    const now = Date.now();
-    const actInterval = now - now % this.foodIntervalLength;
-    if (actInterval > this.foodActIntervalStart) {
-      this.foodRate = this.foodCount / this.foodIntervalLength;
-      this.foodCount = 0;
-      this.foodActIntervalStart = actInterval;
-      // console.log(this.foodRate);
+    if (this.deathBlur <= 0) {
+      const now = Date.now();
+      const actInterval = now - now % this.foodIntervalLength;
+      if (actInterval > this.foodActIntervalStart) {
+        this.foodRate = this.foodCount / this.foodIntervalLength;
+        this.foodCount = 0;
+        this.foodActIntervalStart = actInterval;
+        // console.log(this.foodRate);
 
-      if (this.foodRate > 0.003) {
-        new Predator(worldWidth, worldHeight, this.position.clone());
-      } else if (this.foodRate < 0.001 && Predator.predators.length > 1) {
-        const idx = Predator.predators.findIndex(p => p.id === this.id);
-        Predator.predators.splice(idx, 1);
+        if (this.foodRate > 0.003) {
+          new Predator(worldWidth, worldHeight, this.position.clone());
+          Predator.updatePredatorCount();
+        } else if (this.foodRate < 0.001 && Predator.predators.length > 0) {
+          // console.log('death');
+          this.deathBlur = this.deathBlurStep;
+        }
       }
-      Predator.updatePredatorCount(worldWidth, worldHeight);
     }
 
     if (this.acceleration.isZero())
@@ -117,12 +132,22 @@ class Predator extends BoidBase {
 
 
   draw(ctx) {
+    if (this.deathBlur > 0)
+      this.deathBlur += this.deathBlurStep;
+    const alpha = this.deathBlur > 0 ? (100 - this.deathBlur) : 100;
+
+    if (alpha <= 0) {
+      const idx = Predator.predators.findIndex(p => p.id === this.id);
+      Predator.predators.splice(idx, 1);
+      Predator.updatePredatorCount();
+      return;
+    }
+
     ctx.save();
     ctx.translate(this.position.x, this.position.y);
     ctx.rotate(this.velocity.toRadians() - Math.PI / 2);
 
-    // turn speed to color
-    let style = 'hsl(' + 0 + ' 100% 50% / ' + (100) + '%)';
+    let style = 'hsl(' + 0 + ' 100% 50% / ' + (alpha) + '%)';
     ctx.strokeStyle = style;
     ctx.fillStyle = style;
     ctx.lineWidth = 3;
@@ -149,7 +174,8 @@ class Predator extends BoidBase {
 
     ctx.stroke();
 
-    style = 'hsl(' + this.foodRate * 10000 + ' 100% 50% / ' + (100) + '%)';
+    // turn food rate to color
+    style = 'hsl(' + this.foodRate * 10000 + ' 100% 50% / ' + (alpha) + '%)';
     ctx.strokeStyle = style;
     ctx.fillStyle = style;
     ctx.beginPath();
