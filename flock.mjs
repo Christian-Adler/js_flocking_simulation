@@ -1,4 +1,5 @@
 import {Boid} from "./boid.mjs";
+import {Vector} from "./vector.mjs";
 
 class Flock {
 
@@ -18,8 +19,8 @@ class Flock {
     let amount = this.flock.length;
     this.boidCountSpan.innerText = 'Boids: ' + amount;
     if (amount === 0) {
-      for (let i = 0; i < this.birthRate; i++) {
-        this.flock.push(new Boid(worldWidth, worldHeight, this));
+      for (let i = 0; i < this.birthRate * 2; i++) {
+        this.flock.push(new Boid(worldWidth, worldHeight, this, new Vector(0, 0)));
       }
       this.updateBoidCount(worldWidth, worldHeight);
     }
