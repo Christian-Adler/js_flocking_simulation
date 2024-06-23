@@ -64,6 +64,8 @@ class Vector {
   }
 
   limit(val) {
+    if (val <= 0)
+      return this.mult(0);
     if (this.len() > val)
       return this.normalize().mult(val);
     return this;
